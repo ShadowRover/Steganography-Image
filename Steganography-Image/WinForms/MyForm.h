@@ -1,5 +1,5 @@
 #pragma once
-
+#using <mscorlib.dll>
 namespace WinForms {
 
 	using namespace System;
@@ -10,6 +10,7 @@ namespace WinForms {
 	using namespace System::Drawing;
 	using namespace System::IO;
 	using namespace System::Runtime::InteropServices;
+	using namespace System::Windows::Media::Imaging;
 
 	/// <summary>
 	/// Сводка для MyForm
@@ -38,7 +39,7 @@ namespace WinForms {
 		}
 
 	protected:
-	private: System::Windows::Forms::PictureBox^  Picture;
+
 	private: System::Windows::Forms::Button^  BtOpenImage;
 	private: System::Windows::Forms::OpenFileDialog^  openImageDialog;
 	private: System::Windows::Forms::OpenFileDialog^  openMessDialog;
@@ -53,6 +54,9 @@ namespace WinForms {
 	private: System::Windows::Forms::SaveFileDialog^  saveMessDialog;
 	private: System::Windows::Forms::Button^  BtSaveMessage;
 	private: System::Windows::Forms::RichTextBox^  TextBox;
+	private: System::Windows::Forms::Panel^  panel1;
+	private: System::Windows::Forms::PictureBox^  Picture;
+
 
 
 
@@ -73,7 +77,6 @@ namespace WinForms {
 		/// </summary>
 		void InitializeComponent(void)
 		{
-			this->Picture = (gcnew System::Windows::Forms::PictureBox());
 			this->BtOpenImage = (gcnew System::Windows::Forms::Button());
 			this->openImageDialog = (gcnew System::Windows::Forms::OpenFileDialog());
 			this->openMessDialog = (gcnew System::Windows::Forms::OpenFileDialog());
@@ -88,16 +91,11 @@ namespace WinForms {
 			this->saveMessDialog = (gcnew System::Windows::Forms::SaveFileDialog());
 			this->BtSaveMessage = (gcnew System::Windows::Forms::Button());
 			this->TextBox = (gcnew System::Windows::Forms::RichTextBox());
+			this->panel1 = (gcnew System::Windows::Forms::Panel());
+			this->Picture = (gcnew System::Windows::Forms::PictureBox());
+			this->panel1->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->Picture))->BeginInit();
 			this->SuspendLayout();
-			// 
-			// Picture
-			// 
-			this->Picture->Location = System::Drawing::Point(12, 12);
-			this->Picture->Name = L"Picture";
-			this->Picture->Size = System::Drawing::Size(507, 353);
-			this->Picture->TabIndex = 1;
-			this->Picture->TabStop = false;
 			// 
 			// BtOpenImage
 			// 
@@ -123,7 +121,7 @@ namespace WinForms {
 			this->BtGetMessage->Name = L"BtGetMessage";
 			this->BtGetMessage->Size = System::Drawing::Size(135, 23);
 			this->BtGetMessage->TabIndex = 3;
-			this->BtGetMessage->Text = L"Получить сообщение";
+			this->BtGetMessage->Text = L"Найти сообщение";
 			this->BtGetMessage->UseVisualStyleBackColor = true;
 			// 
 			// BtOpenMessage
@@ -142,7 +140,7 @@ namespace WinForms {
 			this->BtPutMessage->Name = L"BtPutMessage";
 			this->BtPutMessage->Size = System::Drawing::Size(135, 23);
 			this->BtPutMessage->TabIndex = 5;
-			this->BtPutMessage->Text = L"Поместить сообщение";
+			this->BtPutMessage->Text = L"Скрыть сообщение";
 			this->BtPutMessage->UseVisualStyleBackColor = true;
 			this->BtPutMessage->Click += gcnew System::EventHandler(this, &MyForm::BtPutMessage_Click);
 			// 
@@ -201,11 +199,31 @@ namespace WinForms {
 			this->TextBox->TabIndex = 12;
 			this->TextBox->Text = L"";
 			// 
+			// panel1
+			// 
+			this->panel1->AutoScroll = true;
+			this->panel1->BorderStyle = System::Windows::Forms::BorderStyle::FixedSingle;
+			this->panel1->Controls->Add(this->Picture);
+			this->panel1->Location = System::Drawing::Point(3, 3);
+			this->panel1->Name = L"panel1";
+			this->panel1->Size = System::Drawing::Size(525, 362);
+			this->panel1->TabIndex = 13;
+			// 
+			// Picture
+			// 
+			this->Picture->Location = System::Drawing::Point(5, 6);
+			this->Picture->Name = L"Picture";
+			this->Picture->Size = System::Drawing::Size(513, 348);
+			this->Picture->SizeMode = System::Windows::Forms::PictureBoxSizeMode::AutoSize;
+			this->Picture->TabIndex = 0;
+			this->Picture->TabStop = false;
+			// 
 			// MyForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(913, 401);
+			this->Controls->Add(this->panel1);
 			this->Controls->Add(this->TextBox);
 			this->Controls->Add(this->BtSaveMessage);
 			this->Controls->Add(this->OffsetByte);
@@ -216,67 +234,72 @@ namespace WinForms {
 			this->Controls->Add(this->BtOpenMessage);
 			this->Controls->Add(this->BtGetMessage);
 			this->Controls->Add(this->BtOpenImage);
-			this->Controls->Add(this->Picture);
 			this->Name = L"MyForm";
 			this->Text = L"Image Steganography";
+			this->panel1->ResumeLayout(false);
+			this->panel1->PerformLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->Picture))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
 		}
 #pragma endregion
-		// Открытие изображения
-	private: System::Void BtOpenImage_Click(System::Object^  sender, System::EventArgs^  e) {
-		MyForm::openImageDialog->ShowDialog();
-		MyForm::openImageDialog->CheckFileExists = true;
-		if (MyForm::openImageDialog->FileName != "")
-			MyForm::Picture->Load(openImageDialog->FileName);
-	}
-			 // Открытие файла сообщения
-	private: System::Void BtOpenMessage_Click(System::Object^  sender, System::EventArgs^  e) {
-		MyForm::openMessDialog->ShowDialog();
-		if (MyForm::openMessDialog->FileName != "")
+// Открытие изображения
+private: System::Void BtOpenImage_Click(System::Object^  sender, System::EventArgs^  e) {
+	MyForm::openImageDialog->ShowDialog();
+	MyForm::openImageDialog->CheckFileExists = true;
+	if (MyForm::openImageDialog->FileName != "")
+		MyForm::Picture->Load(openImageDialog->FileName);
+	/*Stream^ imageStreamSource = gcnew FileStream(openImageDialog->FileName, FileMode::Open, FileAccess::Read, FileShare::Read);
+	JpegBitmapDecoder^ decoder = gcnew JpegBitmapDecoder(imageStreamSource, BitmapCreateOptions::PreservePixelFormat, BitmapCacheOption::Default);
+	BitmapSource^ bitmapSource = decoder->Frames[0];
+	*/
+}
+// Открытие файла сообщения
+private: System::Void BtOpenMessage_Click(System::Object^  sender, System::EventArgs^  e) {
+	MyForm::openMessDialog->ShowDialog();
+	if (MyForm::openMessDialog->FileName != "")
+	{
+		StreamReader^ din = File::OpenText(openMessDialog->FileName);
+		String^ str;
+		TextBox->Clear();
+		while ((str = din->ReadLine()) != nullptr)
 		{
-			StreamReader^ din = File::OpenText(openMessDialog->FileName);
-			String^ str;
-			TextBox->Clear();
-			while ((str = din->ReadLine()) != nullptr)
-			{
-				MyForm::TextBox->AppendText(str + "\n");
-			}
-			din->Close();
+			MyForm::TextBox->AppendText(str + "\n");
 		}
+		din->Close();
 	}
-			 // Сохранение сообщения в файл 
-	private: System::Void BtSaveMessage_Click(System::Object^  sender, System::EventArgs^  e) {
-		MyForm::saveMessDialog->ShowDialog();
-		if (MyForm::openMessDialog->FileName != "")
-		{
-			StreamWriter^ sw = gcnew StreamWriter(openMessDialog->FileName);
-			for (int i = 0; i < TextBox->Lines->Length; i++)
-			{
-				sw->WriteLine(MyForm::TextBox->Lines[i]);
-			}
-			sw->Close();
-		}
-	}
-			 // Окрытие изображения
-	private: System::Void BtPutMessage_Click(System::Object^  sender, System::EventArgs^  e) {
+}
+// Сохранение сообщения в файл 
+private: System::Void BtSaveMessage_Click(System::Object^  sender, System::EventArgs^  e) {
+	MyForm::saveMessDialog->ShowDialog();
+	if (MyForm::openMessDialog->FileName != "")
+	{
+		StreamWriter^ sw = gcnew StreamWriter(openMessDialog->FileName);
 		for (int i = 0; i < TextBox->Lines->Length; i++)
 		{
-			String ^str = TextBox->Lines[0]->ToString();
-			for (int j = 0; j < str->Length; j++)
-			{
-				array<Int32> ^a = gcnew array<Int32>(1);
-				a[0] = Convert::ToInt16(str[j]);
-				BitArray ^bits = gcnew BitArray(a);
-				/* //bits->int
-				bits->Set(0, 0);
-				bits->CopyTo(a, 0);
-				TextBox->AppendText(((wchar_t)(Convert::ToInt16(a[0]))).ToString());
-				*/
-			}
+			sw->WriteLine(MyForm::TextBox->Lines[i]);
+		}
+		sw->Close();
+	}
+}
+// Окрытие изображения
+private: System::Void BtPutMessage_Click(System::Object^  sender, System::EventArgs^  e) {
+	for (int i = 0; i < TextBox->Lines->Length; i++)
+	{
+		String ^str = TextBox->Lines[0]->ToString();
+		for (int j = 0; j < str->Length; j++)
+		{
+			array<Int32> ^a = gcnew array<Int32>(1);
+			a[0] = Convert::ToInt16(str[j]);
+			BitArray ^bits = gcnew BitArray(a);
+			/* //bits->int
+			bits->Set(0, 0);
+			bits->CopyTo(a, 0);
+			TextBox->AppendText(((wchar_t)(Convert::ToInt16(a[0]))).ToString());
+			*/
 		}
 	}
+}
 	};
 }
