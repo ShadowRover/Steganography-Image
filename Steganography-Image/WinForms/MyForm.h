@@ -1,5 +1,6 @@
 #pragma once
 #using <mscorlib.dll>
+#include <math.h>
 namespace WinForms {
 
 	using namespace System;
@@ -56,14 +57,8 @@ namespace WinForms {
 	private: System::Windows::Forms::RichTextBox^  TextBox;
 	private: System::Windows::Forms::Panel^  panel1;
 	private: System::Windows::Forms::PictureBox^  Picture;
-
-
-
-
-
-
-
-
+	private: int bit = 1;
+	private: Int16 GetMask(int);
 	private:
 		/// <summary>
 		/// Обязательная переменная конструктора.
@@ -117,6 +112,7 @@ namespace WinForms {
 			// 
 			// BtGetMessage
 			// 
+			this->BtGetMessage->Enabled = false;
 			this->BtGetMessage->Location = System::Drawing::Point(766, 342);
 			this->BtGetMessage->Name = L"BtGetMessage";
 			this->BtGetMessage->Size = System::Drawing::Size(135, 23);
@@ -136,6 +132,7 @@ namespace WinForms {
 			// 
 			// BtPutMessage
 			// 
+			this->BtPutMessage->Enabled = false;
 			this->BtPutMessage->Location = System::Drawing::Point(766, 371);
 			this->BtPutMessage->Name = L"BtPutMessage";
 			this->BtPutMessage->Size = System::Drawing::Size(135, 23);
@@ -153,6 +150,7 @@ namespace WinForms {
 			this->BitCount->Size = System::Drawing::Size(121, 21);
 			this->BitCount->TabIndex = 6;
 			this->BitCount->Text = L"1";
+			this->BitCount->SelectedIndexChanged += gcnew System::EventHandler(this, &MyForm::BitCount_SelectedIndexChanged);
 			// 
 			// label1
 			// 
@@ -180,6 +178,14 @@ namespace WinForms {
 			this->OffsetByte->Size = System::Drawing::Size(121, 20);
 			this->OffsetByte->TabIndex = 9;
 			this->OffsetByte->Text = L"1";
+			// 
+			// saveImageDialog
+			// 
+			this->saveImageDialog->Filter = L"JPEG Files|*.jpg";
+			// 
+			// saveMessDialog
+			// 
+			this->saveMessDialog->Filter = L"Text Files|*.txt";
 			// 
 			// BtSaveMessage
 			// 
@@ -249,11 +255,11 @@ private: System::Void BtOpenImage_Click(System::Object^  sender, System::EventAr
 	MyForm::openImageDialog->ShowDialog();
 	MyForm::openImageDialog->CheckFileExists = true;
 	if (MyForm::openImageDialog->FileName != "")
+	{
+		BtGetMessage->Enabled = true;
+		BtPutMessage->Enabled = true;
 		MyForm::Picture->Load(openImageDialog->FileName);
-	/*Stream^ imageStreamSource = gcnew FileStream(openImageDialog->FileName, FileMode::Open, FileAccess::Read, FileShare::Read);
-	JpegBitmapDecoder^ decoder = gcnew JpegBitmapDecoder(imageStreamSource, BitmapCreateOptions::PreservePixelFormat, BitmapCacheOption::Default);
-	BitmapSource^ bitmapSource = decoder->Frames[0];
-	*/
+	}
 }
 // Открытие файла сообщения
 private: System::Void BtOpenMessage_Click(System::Object^  sender, System::EventArgs^  e) {
@@ -283,23 +289,63 @@ private: System::Void BtSaveMessage_Click(System::Object^  sender, System::Event
 		sw->Close();
 	}
 }
-// Окрытие изображения
-private: System::Void BtPutMessage_Click(System::Object^  sender, System::EventArgs^  e) {
-	for (int i = 0; i < TextBox->Lines->Length; i++)
+// Скрытие сообщения
+private: System::Void BtPutMessage_Click(System::Object^  sender, System::EventArgs^  e) 
+{
+	int step = Convert::ToInt32(OffsetByte->Text);
+	Int16 clr_mask = GetMask(bit);
+	String ^s = TextBox->Text;
+	array<Int16> ^a = gcnew array<Int16>(s->Length);
+	//TextBox->AppendText(str + "\n");
+	for (int i = 0; i < s->Length; i++)
 	{
+		a[i] = Convert::ToInt16(s[i]);
+	}
+	Bitmap ^img = gcnew Bitmap(openImageDialog->FileName);
+	if (img->Height*img->Width<s->Length*(4/bit)*step)
+	{
+		MessageBox::Show(this,"Размер изображения мал для скрытия данного сообщения","Ошибка",MessageBoxButtons::OK);
+	}
+	else
+	{
+		int k = 0;
+		for (int i = 0; i < img->Width*img->Height; i++)
+		{
+			k = i / (4 / bit);
+			if (k >= s->Length)
+				break;
+			Color pixel = img->GetPixel(i/img->Height, i);
+			int r = (pixel.R & clr_mask)|(a[k]&(~clr_mask));
+			a[k] >>= bit;
+			int g = (pixel.G & clr_mask)|(a[k]&(~clr_mask));
+			a[k] >>= bit;
+			int b = (pixel.B & clr_mask)|(a[k]&(~clr_mask));
+			a[k] >>= bit;
+			img->SetPixel(i/img->Height, i, Color::FromArgb(r, g, b));
+		}
+		saveImageDialog->ShowDialog();
+		MyForm::openImageDialog->CheckFileExists = true;
+		if (saveImageDialog->FileName != "")
+			img->Save(saveImageDialog->FileName);
+		/*for (int i = 0; i < TextBox->Lines->Length; i++)
+		{
 		String ^str = TextBox->Lines[0]->ToString();
 		for (int j = 0; j < str->Length; j++)
 		{
-			array<Int32> ^a = gcnew array<Int32>(1);
-			a[0] = Convert::ToInt16(str[j]);
-			BitArray ^bits = gcnew BitArray(a);
-			/* //bits->int
-			bits->Set(0, 0);
-			bits->CopyTo(a, 0);
-			TextBox->AppendText(((wchar_t)(Convert::ToInt16(a[0]))).ToString());
-			*/
+		array<Int32> ^a = gcnew array<Int32>(1);
+		a[0] = Convert::ToInt16(str[j]);
+		BitArray ^bits = gcnew BitArray(a);
+		/* //bits->int
+		bits->Set(0, 0);
+		bits->CopyTo(a, 0);
+		TextBox->AppendText(((wchar_t)(Convert::ToInt16(a[0]))).ToString());
 		}
+		}*/
 	}
 }
-	};
+private: System::Void BitCount_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e) {
+	bit = 1;
+	bit = bit << BitCount->SelectedIndex;
+}
+};
 }

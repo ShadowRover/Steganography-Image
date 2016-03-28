@@ -11,3 +11,8 @@ void WinMain() {
 	WinForms::MyForm form;
 	Application::Run(%form);
 }
+
+Int16 WinForms::MyForm::GetMask(int bit)
+{
+	return Int16(4095<<bit);
+}
