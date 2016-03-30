@@ -49,8 +49,8 @@ namespace WinForms {
 	private: System::Windows::Forms::Button^  BtPutMessage;
 	private: System::Windows::Forms::ComboBox^  BitCount;
 	private: System::Windows::Forms::Label^  label1;
-	private: System::Windows::Forms::Label^  label2;
-	private: System::Windows::Forms::TextBox^  OffsetByte;
+
+
 	private: System::Windows::Forms::SaveFileDialog^  saveImageDialog;
 	private: System::Windows::Forms::SaveFileDialog^  saveMessDialog;
 	private: System::Windows::Forms::Button^  BtSaveMessage;
@@ -80,8 +80,6 @@ namespace WinForms {
 			this->BtPutMessage = (gcnew System::Windows::Forms::Button());
 			this->BitCount = (gcnew System::Windows::Forms::ComboBox());
 			this->label1 = (gcnew System::Windows::Forms::Label());
-			this->label2 = (gcnew System::Windows::Forms::Label());
-			this->OffsetByte = (gcnew System::Windows::Forms::TextBox());
 			this->saveImageDialog = (gcnew System::Windows::Forms::SaveFileDialog());
 			this->saveMessDialog = (gcnew System::Windows::Forms::SaveFileDialog());
 			this->BtSaveMessage = (gcnew System::Windows::Forms::Button());
@@ -104,7 +102,7 @@ namespace WinForms {
 			// 
 			// openImageDialog
 			// 
-			this->openImageDialog->Filter = L"JPEG files|*.jpg";
+			this->openImageDialog->Filter = L"PNG files|*.png";
 			// 
 			// openMessDialog
 			// 
@@ -113,16 +111,17 @@ namespace WinForms {
 			// BtGetMessage
 			// 
 			this->BtGetMessage->Enabled = false;
-			this->BtGetMessage->Location = System::Drawing::Point(766, 342);
+			this->BtGetMessage->Location = System::Drawing::Point(771, 314);
 			this->BtGetMessage->Name = L"BtGetMessage";
 			this->BtGetMessage->Size = System::Drawing::Size(135, 23);
 			this->BtGetMessage->TabIndex = 3;
 			this->BtGetMessage->Text = L"Найти сообщение";
 			this->BtGetMessage->UseVisualStyleBackColor = true;
+			this->BtGetMessage->Click += gcnew System::EventHandler(this, &MyForm::BtGetMessage_Click);
 			// 
 			// BtOpenMessage
 			// 
-			this->BtOpenMessage->Location = System::Drawing::Point(537, 342);
+			this->BtOpenMessage->Location = System::Drawing::Point(542, 314);
 			this->BtOpenMessage->Name = L"BtOpenMessage";
 			this->BtOpenMessage->Size = System::Drawing::Size(170, 23);
 			this->BtOpenMessage->TabIndex = 4;
@@ -133,7 +132,7 @@ namespace WinForms {
 			// BtPutMessage
 			// 
 			this->BtPutMessage->Enabled = false;
-			this->BtPutMessage->Location = System::Drawing::Point(766, 371);
+			this->BtPutMessage->Location = System::Drawing::Point(771, 343);
 			this->BtPutMessage->Name = L"BtPutMessage";
 			this->BtPutMessage->Size = System::Drawing::Size(135, 23);
 			this->BtPutMessage->TabIndex = 5;
@@ -145,7 +144,7 @@ namespace WinForms {
 			// 
 			this->BitCount->FormattingEnabled = true;
 			this->BitCount->Items->AddRange(gcnew cli::array< System::Object^  >(3) { L"1", L"2", L"4" });
-			this->BitCount->Location = System::Drawing::Point(777, 271);
+			this->BitCount->Location = System::Drawing::Point(782, 271);
 			this->BitCount->Name = L"BitCount";
 			this->BitCount->Size = System::Drawing::Size(121, 21);
 			this->BitCount->TabIndex = 6;
@@ -155,33 +154,15 @@ namespace WinForms {
 			// label1
 			// 
 			this->label1->AutoSize = true;
-			this->label1->Location = System::Drawing::Point(534, 274);
+			this->label1->Location = System::Drawing::Point(539, 274);
 			this->label1->Name = L"label1";
 			this->label1->Size = System::Drawing::Size(224, 13);
 			this->label1->TabIndex = 7;
 			this->label1->Text = L"Число используемых последних бит байта";
 			// 
-			// label2
-			// 
-			this->label2->AutoSize = true;
-			this->label2->Location = System::Drawing::Point(534, 307);
-			this->label2->Name = L"label2";
-			this->label2->Size = System::Drawing::Size(143, 13);
-			this->label2->TabIndex = 8;
-			this->label2->Text = L"Величина смещения (байт)";
-			// 
-			// OffsetByte
-			// 
-			this->OffsetByte->Location = System::Drawing::Point(777, 304);
-			this->OffsetByte->MaxLength = 2;
-			this->OffsetByte->Name = L"OffsetByte";
-			this->OffsetByte->Size = System::Drawing::Size(121, 20);
-			this->OffsetByte->TabIndex = 9;
-			this->OffsetByte->Text = L"1";
-			// 
 			// saveImageDialog
 			// 
-			this->saveImageDialog->Filter = L"JPEG Files|*.jpg";
+			this->saveImageDialog->Filter = L"PNG Files|*.png";
 			// 
 			// saveMessDialog
 			// 
@@ -189,7 +170,7 @@ namespace WinForms {
 			// 
 			// BtSaveMessage
 			// 
-			this->BtSaveMessage->Location = System::Drawing::Point(537, 371);
+			this->BtSaveMessage->Location = System::Drawing::Point(542, 343);
 			this->BtSaveMessage->Name = L"BtSaveMessage";
 			this->BtSaveMessage->Size = System::Drawing::Size(170, 23);
 			this->BtSaveMessage->TabIndex = 11;
@@ -199,7 +180,8 @@ namespace WinForms {
 			// 
 			// TextBox
 			// 
-			this->TextBox->Location = System::Drawing::Point(537, 12);
+			this->TextBox->Location = System::Drawing::Point(542, 12);
+			this->TextBox->MaxLength = 65535;
 			this->TextBox->Name = L"TextBox";
 			this->TextBox->Size = System::Drawing::Size(364, 240);
 			this->TextBox->TabIndex = 12;
@@ -226,20 +208,19 @@ namespace WinForms {
 			// 
 			// MyForm
 			// 
-			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
-			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(913, 401);
+			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::None;
+			this->ClientSize = System::Drawing::Size(914, 401);
 			this->Controls->Add(this->panel1);
 			this->Controls->Add(this->TextBox);
 			this->Controls->Add(this->BtSaveMessage);
-			this->Controls->Add(this->OffsetByte);
-			this->Controls->Add(this->label2);
 			this->Controls->Add(this->label1);
 			this->Controls->Add(this->BitCount);
 			this->Controls->Add(this->BtPutMessage);
 			this->Controls->Add(this->BtOpenMessage);
 			this->Controls->Add(this->BtGetMessage);
 			this->Controls->Add(this->BtOpenImage);
+			this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::FixedDialog;
+			this->MaximizeBox = false;
 			this->Name = L"MyForm";
 			this->Text = L"Image Steganography";
 			this->panel1->ResumeLayout(false);
@@ -292,60 +273,108 @@ private: System::Void BtSaveMessage_Click(System::Object^  sender, System::Event
 // Скрытие сообщения
 private: System::Void BtPutMessage_Click(System::Object^  sender, System::EventArgs^  e) 
 {
-	int step = Convert::ToInt32(OffsetByte->Text);
 	Int16 clr_mask = GetMask(bit);
 	String ^s = TextBox->Text;
 	array<Int16> ^a = gcnew array<Int16>(s->Length);
-	//TextBox->AppendText(str + "\n");
 	for (int i = 0; i < s->Length; i++)
 	{
 		a[i] = Convert::ToInt16(s[i]);
 	}
 	Bitmap ^img = gcnew Bitmap(openImageDialog->FileName);
-	if (img->Height*img->Width<s->Length*(4/bit)*step)
+	if (img->Height*img->Width<s->Length*(4/bit))
 	{
 		MessageBox::Show(this,"Размер изображения мал для скрытия данного сообщения","Ошибка",MessageBoxButtons::OK);
 	}
 	else
 	{
+		array<Color> ^p = gcnew array<Color>(3);
+		array<Int16> ^x = gcnew array<Int16>(9);
+		for (int i = 0; i < 3; i++)
+		{
+			p[i] = img->GetPixel(0,i);
+			x[3*i] = p[i].R & 252;
+			x[3*i+1] = p[i].G & 252;
+			x[3*i+2] = p[i].B & 252;
+		}
+		x[0] |= BitCount->SelectedIndex;
+		for (int i = 0; i < 8; i++)
+		{
+			x[i + 1] |= (s->Length >> (2 * i)) & 3;
+		}
+		for (int i = 0; i < 3; i++)
+		{
+			img->SetPixel(0, i, Color::FromArgb(x[3*i], x[3*i+1], x[3*i+2]));
+		}
 		int k = 0;
-		for (int i = 0; i < img->Width*img->Height; i++)
+		for (int i = 0; i < img->Width*img->Height-3; i++)
 		{
 			k = i / (4 / bit);
 			if (k >= s->Length)
 				break;
-			Color pixel = img->GetPixel(i/img->Height, i);
+			Color pixel = img->GetPixel((i+3)/img->Height, i+3);
 			int r = (pixel.R & clr_mask)|(a[k]&(~clr_mask));
 			a[k] >>= bit;
 			int g = (pixel.G & clr_mask)|(a[k]&(~clr_mask));
 			a[k] >>= bit;
 			int b = (pixel.B & clr_mask)|(a[k]&(~clr_mask));
 			a[k] >>= bit;
-			img->SetPixel(i/img->Height, i, Color::FromArgb(r, g, b));
+			img->SetPixel((i+3)/img->Height, i+3, Color::FromArgb(r, g, b));
 		}
 		saveImageDialog->ShowDialog();
 		MyForm::openImageDialog->CheckFileExists = true;
 		if (saveImageDialog->FileName != "")
 			img->Save(saveImageDialog->FileName);
-		/*for (int i = 0; i < TextBox->Lines->Length; i++)
-		{
-		String ^str = TextBox->Lines[0]->ToString();
-		for (int j = 0; j < str->Length; j++)
-		{
-		array<Int32> ^a = gcnew array<Int32>(1);
-		a[0] = Convert::ToInt16(str[j]);
-		BitArray ^bits = gcnew BitArray(a);
-		/* //bits->int
-		bits->Set(0, 0);
-		bits->CopyTo(a, 0);
-		TextBox->AppendText(((wchar_t)(Convert::ToInt16(a[0]))).ToString());
-		}
-		}*/
+		MessageBox::Show(this, "Сообщение скрыто", "Готово", MessageBoxButtons::OK);
 	}
 }
 private: System::Void BitCount_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e) {
 	bit = 1;
 	bit = bit << BitCount->SelectedIndex;
+}
+private: System::Void BtGetMessage_Click(System::Object^  sender, System::EventArgs^  e) {
+	Bitmap ^img = gcnew Bitmap(openImageDialog->FileName);
+	array<Color> ^p = gcnew array<Color>(3);
+	array<Int16> ^x = gcnew array<Int16>(9);
+	int msk = 4095 >> 3 * (4-bit);
+	for (int i = 0; i < 3; i++)
+	{
+		p[i] = img->GetPixel(0, i);
+		x[3 * i] = p[i].R & 3;
+		x[3 * i + 1] = p[i].G & 3;
+		x[3 * i + 2] = p[i].B & 3;
+	}
+	int bit = 1 << x[0];
+	int len = 0;
+	int k = 0;
+	for (int i = 8; i > 0; i--)
+	{
+		len |= x[i]<<2*(i-1);
+	}
+	array<Int16> ^a = gcnew array<Int16>(len);
+	int mask = GetMask(bit);
+	for (int i = 0; i < img->Width*img->Height - 3; i++)
+	{
+		k = i / (4 / bit);
+		if (k >= len)
+			break;
+		Color pixel = img->GetPixel((i + 3) / img->Height, i + 3);
+		int d = 0;
+		int r = (pixel.B & ~mask);
+		d |= r;
+		d <<= bit;
+		int g = (pixel.G & ~mask);
+		d |= g;
+		d <<= bit;
+		int b = (pixel.R & ~mask);
+		d |= b;
+		int shift = 3 * bit*(i % (4 / bit));
+		a[k] |= d << shift;
+		if (i%(4/bit)==4/bit-1)
+		{
+			TextBox->AppendText(((wchar_t)(Convert::ToInt16(a[k]))).ToString());
+		}
+	}
+	MessageBox::Show(this, "Сообщение скрыто", "Готово", MessageBoxButtons::OK);
 }
 };
 }
