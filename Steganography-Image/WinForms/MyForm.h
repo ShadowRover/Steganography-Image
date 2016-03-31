@@ -260,9 +260,9 @@ private: System::Void BtOpenMessage_Click(System::Object^  sender, System::Event
 // Сохранение сообщения в файл 
 private: System::Void BtSaveMessage_Click(System::Object^  sender, System::EventArgs^  e) {
 	MyForm::saveMessDialog->ShowDialog();
-	if (MyForm::openMessDialog->FileName != "")
+	if (MyForm::saveMessDialog->FileName != "")
 	{
-		StreamWriter^ sw = gcnew StreamWriter(openMessDialog->FileName);
+		StreamWriter^ sw = gcnew StreamWriter(saveMessDialog->FileName);
 		for (int i = 0; i < TextBox->Lines->Length; i++)
 		{
 			sw->WriteLine(MyForm::TextBox->Lines[i]);
@@ -275,11 +275,6 @@ private: System::Void BtPutMessage_Click(System::Object^  sender, System::EventA
 {
 	Int16 clr_mask = GetMask(bit);
 	String ^s = TextBox->Text;
-	array<Int16> ^a = gcnew array<Int16>(s->Length);
-	for (int i = 0; i < s->Length; i++)
-	{
-		a[i] = Convert::ToInt16(s[i]);
-	}
 	Bitmap ^img = gcnew Bitmap(openImageDialog->FileName);
 	if (img->Height*img->Width<s->Length*(4/bit))
 	{
@@ -288,76 +283,89 @@ private: System::Void BtPutMessage_Click(System::Object^  sender, System::EventA
 	else
 	{
 		array<Color> ^p = gcnew array<Color>(3);
-		array<Int16> ^x = gcnew array<Int16>(9);
+		array<Int16> ^c = gcnew array<Int16>(9);
+		int r, g, b;
 		for (int i = 0; i < 3; i++)
 		{
 			p[i] = img->GetPixel(0,i);
-			x[3*i] = p[i].R & 252;
-			x[3*i+1] = p[i].G & 252;
-			x[3*i+2] = p[i].B & 252;
+			c[3*i] = p[i].R & 252;
+			c[3*i+1] = p[i].G & 252;
+			c[3*i+2] = p[i].B & 252;
 		}
-		x[0] |= BitCount->SelectedIndex;
+		c[0] |= BitCount->SelectedIndex;
 		for (int i = 0; i < 8; i++)
 		{
-			x[i + 1] |= (s->Length >> (2 * i)) & 3;
+			c[i + 1] |= (s->Length >> (2 * i)) & 3;
 		}
 		for (int i = 0; i < 3; i++)
 		{
-			img->SetPixel(0, i, Color::FromArgb(x[3*i], x[3*i+1], x[3*i+2]));
+			img->SetPixel(0, i, Color::FromArgb(c[3*i], c[3*i+1], c[3*i+2]));
 		}
-		int k = 0;
-		for (int i = 0; i < img->Width*img->Height-3; i++)
+		int a = 0;
+		int x = 0;
+		int y = 0;
+		for (int i = 0; i < s->Length*4/bit; i++)
 		{
-			k = i / (4 / bit);
-			if (k >= s->Length)
-				break;
-			Color pixel = img->GetPixel((i+3)/img->Height, i+3);
-			int r = (pixel.R & clr_mask)|(a[k]&(~clr_mask));
-			a[k] >>= bit;
-			int g = (pixel.G & clr_mask)|(a[k]&(~clr_mask));
-			a[k] >>= bit;
-			int b = (pixel.B & clr_mask)|(a[k]&(~clr_mask));
-			a[k] >>= bit;
-			img->SetPixel((i+3)/img->Height, i+3, Color::FromArgb(r, g, b));
+			if ((i % (4 / bit))==0)
+			{
+				a = Convert::ToInt16(s[i/(4/bit)]);
+			}
+			Color pixel = img->GetPixel((i + 3) / img->Height, (i + 3) % img->Height);
+			r = (pixel.R & clr_mask) | (a & (~clr_mask));
+			a >>= bit;
+			g = (pixel.G & clr_mask) | (a & (~clr_mask));
+			a >>= bit;
+			b = (pixel.B & clr_mask) | (a & (~clr_mask));
+			a >>= bit;
+			img->SetPixel((i + 3) / img->Height, (i + 3) % img->Height, Color::FromArgb(r, g, b));
 		}
 		saveImageDialog->ShowDialog();
-		MyForm::openImageDialog->CheckFileExists = true;
-		if (saveImageDialog->FileName != "")
+		if (saveImageDialog->FileName != "") {
 			img->Save(saveImageDialog->FileName);
-		MessageBox::Show(this, "Сообщение скрыто", "Готово", MessageBoxButtons::OK);
+			MessageBox::Show(this, "Сообщение скрыто \nДлина сообщения: "+Convert::ToString(s->Length), "Готово", MessageBoxButtons::OK);
+			TextBox->Clear();
+			Picture->Image = nullptr;
+			Picture->Invalidate();
+			BtGetMessage->Enabled = false;
+			BtPutMessage->Enabled = false;
+			openImageDialog->FileName = "";
+			saveImageDialog->FileName = "";
+			openMessDialog->FileName = "";
+			saveMessDialog->FileName = "";
+		}
 	}
 }
 private: System::Void BitCount_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e) {
 	bit = 1;
-	bit = bit << BitCount->SelectedIndex;
+	if (BitCount->SelectedIndex >=0)
+		bit = bit << BitCount->SelectedIndex;
 }
 private: System::Void BtGetMessage_Click(System::Object^  sender, System::EventArgs^  e) {
 	Bitmap ^img = gcnew Bitmap(openImageDialog->FileName);
 	array<Color> ^p = gcnew array<Color>(3);
-	array<Int16> ^x = gcnew array<Int16>(9);
+	array<Int16> ^b = gcnew array<Int16>(9);
 	int msk = 4095 >> 3 * (4-bit);
 	for (int i = 0; i < 3; i++)
 	{
 		p[i] = img->GetPixel(0, i);
-		x[3 * i] = p[i].R & 3;
-		x[3 * i + 1] = p[i].G & 3;
-		x[3 * i + 2] = p[i].B & 3;
+		b[3 * i] = p[i].R & 3;
+		b[3 * i + 1] = p[i].G & 3;
+		b[3 * i + 2] = p[i].B & 3;
 	}
-	int bit = 1 << x[0];
+	int bit = 1 << b[0];
 	int len = 0;
 	int k = 0;
 	for (int i = 8; i > 0; i--)
 	{
-		len |= x[i]<<2*(i-1);
+		len |= b[i]<<2*(i-1);
 	}
-	array<Int16> ^a = gcnew array<Int16>(len);
+	int a = 0;
 	int mask = GetMask(bit);
-	for (int i = 0; i < img->Width*img->Height - 3; i++)
+	int x, y;
+	int cnt = 0;
+	for (int i = 0; i < len*(4/bit); i++)
 	{
-		k = i / (4 / bit);
-		if (k >= len)
-			break;
-		Color pixel = img->GetPixel((i + 3) / img->Height, i + 3);
+		Color pixel = img->GetPixel((i+3) / img->Height, (i+3) % img->Height);
 		int d = 0;
 		int r = (pixel.B & ~mask);
 		d |= r;
@@ -368,13 +376,23 @@ private: System::Void BtGetMessage_Click(System::Object^  sender, System::EventA
 		int b = (pixel.R & ~mask);
 		d |= b;
 		int shift = 3 * bit*(i % (4 / bit));
-		a[k] |= d << shift;
-		if (i%(4/bit)==4/bit-1)
+		a |= d << shift;
+		if ((i)%(4/bit)==4/bit-1)
 		{
-			TextBox->AppendText(((wchar_t)(Convert::ToInt16(a[k]))).ToString());
+			String ^str = ((wchar_t)(Convert::ToInt16(a))).ToString();
+			TextBox->AppendText(str);
+			a = 0;
 		}
 	}
-	MessageBox::Show(this, "Сообщение скрыто", "Готово", MessageBoxButtons::OK);
+	MessageBox::Show(this, "Сообщение найдено\nДлина сообщения: " + Convert::ToString(len), "Готово", MessageBoxButtons::OK);
+	Picture->Image = nullptr;
+	Picture->Invalidate();
+	BtGetMessage->Enabled = false;
+	BtPutMessage->Enabled = false;
+	openImageDialog->FileName = "";
+	saveImageDialog->FileName = "";
+	openMessDialog->FileName = "";
+	saveMessDialog->FileName = "";
 }
 };
 }
